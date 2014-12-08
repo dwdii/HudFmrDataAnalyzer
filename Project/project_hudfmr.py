@@ -17,6 +17,7 @@ from scipy.optimize import curve_fit
 from Tkinter import *
 import tkFileDialog
 import tkFont
+import tkMessageBox
 import ttk
 import urllib
 
@@ -309,7 +310,7 @@ class HudFairMarketRentsRow:
 class App:
     def __init__(self, master):
         self.root = master
-        self.root.title("HUD Fair Market Rents DataEuler")
+        self.root.title("HUD Fair Market Rents Data Analyzer")
 
         self.dataSet = HudFairMarketRentsDataSet()
         self.bGeoCode = BooleanVar()
@@ -335,6 +336,7 @@ class App:
 
         self.txtYear = Entry(self.frame)
         self.txtYear.insert('insert', "2005")
+        self.txtYear["state"] = "disabled"
         self.txtYear.grid(row=curRow, column=1)
 
         self.btnLoadFile = Button(self.frame, text="Load Data File", command=self.btnLoadFile_Click)
@@ -396,6 +398,19 @@ class App:
         self.lblGrpMultiYear.grid(row=curRow, columnspan=fullrowColSpan)
         self.lblGrpMultiYear.configure(font=f)
 
+        # Row: Map Bedrooms
+        curRow += 1
+
+        self.lblBedrooms2 = Label(self.frame, text="Bedrooms: ", justify="right")
+        self.lblBedrooms2.grid(row=curRow, column=0)
+
+        self.cbBedrooms2 = ttk.Combobox(self.frame, state="readonly")
+        fmrPlusAll = list()
+        fmrPlusAll.append("all")
+        fmrPlusAll.extend(self.dataSet.fmrNames)
+        self.cbBedrooms2['values'] = fmrPlusAll
+        self.cbBedrooms2.grid(row=curRow, column=1)
+
         # Row: States combo box
         curRow += 1
 
@@ -429,10 +444,10 @@ class App:
         strCredits += " It is publicly available at: http://www.huduser.org/portal/datasets/fmr.html"
 
         self.lblCredits = Label(self.frame, wraplength=350,
-            text=strCredits , justify="left")
+            text=strCredits, justify="left")
         self.lblCredits.grid(row=curRow, column=0, columnspan=4, padx=(10,10), pady=(10,10))
 
-        #self.load_file()
+        self.btnLoadAllFiles_Click()
 
     def refreshStatesComboBox(self):
         self.cbStates["values"] = self.dataSet.states
@@ -460,42 +475,47 @@ class App:
 
     def btnLoadAllFiles_Click(self):
 
-        codePath = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Data")
-        bGeocode = self.bGeoCode.get()
+        try:
+            codePath = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Data")
+            bGeocode = self.bGeoCode.get()
 
-        # Disable while loading
-        self.btnLoadAllFiles["state"] = "disabled"
+            # Disable while loading
+            self.btnLoadAllFiles["state"] = "disabled"
 
-        # Start with clean slate
-        self.dataSet.data.clear()
+            # Start with clean slate
+            self.dataSet.data.clear()
 
-        files = {
-            2005: "2005-FMR.csv",
-            2006: "2006-FMR.csv",
-            2007: "2007-FMR.csv",
-            2008: "2008-FMR.csv",
-            2009: "2009-FMR.csv",
-            2010: "2010-FMR.csv",
-            2011: "2011-FMR.csv",
-            2012: "2012-FMR.csv",
-            2013: "2013-FMR.csv",
-            2014: "2014-FMR.csv",
-            2015: "2015-FMR.csv",
-        }
+            files = {
+                2005: "2005-FMR.csv",
+                2006: "2006-FMR.csv",
+                2007: "2007-FMR.csv",
+                2008: "2008-FMR.csv",
+                2009: "2009-FMR.csv",
+                2010: "2010-FMR.csv",
+                2011: "2011-FMR.csv",
+                2012: "2012-FMR.csv",
+                2013: "2013-FMR.csv",
+                2014: "2014-FMR.csv",
+                2015: "2015-FMR.csv",
+            }
 
-        for yr in files.keys():
-            # load the file into our data set
-            filepath = os.path.join(codePath, files[yr])
-            self.lblStatus.configure(text="Loading {0}...".format(files[yr]))
+            for yr in files.keys():
+                # load the file into our data set
+                filepath = os.path.join(codePath, files[yr])
+                self.lblStatus.configure(text="Loading {0}...".format(files[yr]))
+                self.root.update()
+                self.dataSet.load(yr, filepath, bGeocode)
+
+            # Report successful status
+            tkMessageBox.showinfo(self.root.title(), "Data files loaded successfully!")
+            self.lblStatus.configure(text="All files loaded.")
             self.root.update()
-            self.dataSet.load(yr, filepath, bGeocode)
 
-        self.lblStatus.configure(text="All files loaded.")
-        self.root.update()
-
-        # Update the UI list of states we know about.
-        self.refreshStatesComboBox()
-        self.refreshYearsComboBox()
+            # Update the UI list of states we know about.
+            self.refreshStatesComboBox()
+            self.refreshYearsComboBox()
+        except Exception, ex:
+            print ("Error loading files: {0}".format(ex))
 
         # enable while loading
         self.btnLoadAllFiles["state"] = "normal"
@@ -512,16 +532,23 @@ class App:
         # Local Vars
         state = self.cbStates.get()
         county = self.cbCounties.get()
+        fmr = self.cbBedrooms2.get()
         data = self.dataSet.findAll(state, county)
         years = list()
+        fmrList = list()
         fmrX = dict()
+
+        if fmr == "all":
+            fmrList = self.dataSet.fmrNames
+        else:
+            fmrList.append(fmr)
 
         # Prep data for linear regression
         for d in data:
             years.append(d.year)
 
             # For each fmr type
-            for f in self.dataSet.fmrNames:
+            for f in fmrList:
                 # Make sure we have a list for this fmr type
                 if not fmrX.has_key(f):
                     fmrX[f] = list()
@@ -531,7 +558,7 @@ class App:
 
         # SciPi Linear Regression
         scipyLr = dict()
-        for f in self.dataSet.fmrNames:
+        for f in fmrList:
             scipyLr[f] = scipy_linearReg(years, fmrX[f])
 
         # What does this look like?
@@ -540,7 +567,7 @@ class App:
         # Loop to plot each series
         plots = list()
         names = list()
-        for f in self.dataSet.fmrNames:
+        for f in fmrList:
             scipyLr0 = scipyLr[f]
             values = fmrX[f]
             linePlot, = plt.plot(years,
