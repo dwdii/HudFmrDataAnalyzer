@@ -12,6 +12,6 @@ The following screenshots provide a brief overview of the current functionality:
 
 ![Hud Fair Market Rent Data Analyzer App](https://github.com/dwdii/HudFmrDataAnalyzer/raw/master/Docs/img/HudFmrDataAnalyzerApp.png)
 
-![Fair Market Rent Geograpic Heatmap](https://github.com/dwdii/HudFmrDataAnalyzer/raw/master/Docs/img/Heatmap-US-fmr-3bd-2015.png)
+![Fair Market Rent Geographic Heatmap](https://github.com/dwdii/HudFmrDataAnalyzer/raw/master/Docs/img/Heatmap-US-fmr-3bd-2015.png)
 
 ![Linear Regression of Fair Market Rents in Santa Clara County, CA, 2005-2015](https://github.com/dwdii/HudFmrDataAnalyzer/raw/master/Docs/img/LinReg-SantaClaraCA-3bd.png)

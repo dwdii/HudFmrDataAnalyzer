@@ -578,12 +578,14 @@ class App:
                         '.', linewidth = 2)
             plots.append(linePlot)
             plots.append(points)
-            names.append("{0} Bedroom LR (Slope: {1:.2f})".format(f[-1:], scipyLr0['B1']))
+            names.append("{0} Bedroom LR (y = {1:.2f} + {2:.2f}X)".format(f[-1:], scipyLr0['B0'], scipyLr0['B1']))
             names.append("{0} Bedroom Points".format(f[-1:]))
 
         plt.title("Fair Market Rent {0}, {1}".format(county, state))
         plt.xlabel('Year')
         plt.ylabel('Rent (USD)')
+        plt.figtext(0.025,0.025, "Source: U.S. Dept Housing & Urban Development", size="small")
+        plt.figtext(0.6,0.025, "Created by HudFmrDataAnalyzer from http://github.com/dwdii/", size="xx-small")
         plt.legend(plots, names, fontsize='x-small', loc='upper left')
         plt.show()
 
