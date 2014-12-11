@@ -14,6 +14,7 @@ from mpl_toolkits.basemap import Basemap, cm
 import numpy as np
 import os.path
 from scipy.optimize import curve_fit
+import scipy.stats as stats
 from Tkinter import *
 import tkFileDialog
 import tkFont
@@ -314,6 +315,7 @@ class App:
 
         self.dataSet = HudFairMarketRentsDataSet()
         self.bGeoCode = BooleanVar()
+        self.bLrForecast = BooleanVar()
         self.colorbar = None
         self.yearMaps = dict()
         self.mapFigure = None
@@ -431,6 +433,13 @@ class App:
         self.cbCounties = ttk.Combobox(self.frame, state="readonly")
         self.cbCounties.grid(row=curRow, column=1)
 
+        # Row
+        curRow += 1
+        self.chkShowNextYearForecast = Checkbutton(self.frame,
+                                                   text="Show Year X Forecast", variable=self.bLrForecast)
+        self.chkShowNextYearForecast.grid(row=curRow, column=1)
+
+
         # Row: Button to launch Multi-year Linear Regression
         curRow += 1
 
@@ -508,12 +517,14 @@ class App:
 
             # Report successful status
             tkMessageBox.showinfo(self.root.title(), "Data files loaded successfully!")
-            self.lblStatus.configure(text="All files loaded.")
+            self.lblStatus.configure(text="All files loaded ({0} - {1}). ".format(min(self.dataSet.years), max(self.dataSet.years)))
             self.root.update()
 
             # Update the UI list of states we know about.
             self.refreshStatesComboBox()
             self.refreshYearsComboBox()
+            self.chkShowNextYearForecast.config(text="Show Year {0} Forecast".format(max(self.dataSet.years) + 1))
+
         except Exception, ex:
             print ("Error loading files: {0}".format(ex))
 
@@ -533,6 +544,7 @@ class App:
         state = self.cbStates.get()
         county = self.cbCounties.get()
         fmr = self.cbBedrooms2.get()
+        showNextYrForecast = self.bLrForecast.get()
         data = self.dataSet.findAll(state, county)
         years = list()
         fmrList = list()
@@ -564,22 +576,42 @@ class App:
         # What does this look like?
         fig = plt.figure()
 
-        # Loop to plot each series
+        # Prep
         plots = list()
         names = list()
+        predictYrs = [max(years) + 1]
+        if showNextYrForecast:
+            years.extend(predictYrs)
+
+        # Loop to plot each series
         for f in fmrList:
             scipyLr0 = scipyLr[f]
             values = fmrX[f]
+
+            # If forecast will be drawn, then calc it and add nan to raw points list.
+            if showNextYrForecast:
+                nextYrPrediction = lineFunc(predictYrs, scipyLr0['B0'], scipyLr0['B1'])
+                values.append(np.nan)
+
+            # Draw the Linear Model
             linePlot, = plt.plot(years,
                         lineFunc(years, scipyLr0['B0'], scipyLr0['B1']),
                         '--', linewidth = 1)
+            plots.append(linePlot)
+            names.append("{0} Bedroom LR (y = {1:.2f} + {2:.2f}X)".format(f[-1:], scipyLr0['B0'], scipyLr0['B1']))
+
+            # Draw the points
             points, = plt.plot(years,
                         values,
                         '.', linewidth = 2)
-            plots.append(linePlot)
             plots.append(points)
-            names.append("{0} Bedroom LR (y = {1:.2f} + {2:.2f}X)".format(f[-1:], scipyLr0['B0'], scipyLr0['B1']))
             names.append("{0} Bedroom Points".format(f[-1:]))
+
+            # Draw the forecast if requested
+            if showNextYrForecast:
+                predict = plt.errorbar(predictYrs, nextYrPrediction, xerr=0.01, yerr=scipyLr0['+1pi95'])
+                plots.append(predict)
+                names.append("{0} Bd Forecast (95% PI)".format(f[-1:]))
 
         plt.title("Fair Market Rent {0}, {1}".format(county, state))
         plt.xlabel('Year')
@@ -681,9 +713,23 @@ def lineFunc(x, b0, b1):
 def scipy_linearReg(x, y):
     """Calls the SciPy curve_fit function using a linear functional form"""
     popt, pcov = curve_fit(lineFunc, x, y)
+    perr = np.sqrt(np.diag(pcov))
+
+    # Determine prediction interval at 95% level
+    #
+    # Reference: http://nbviewer.ipython.org/github/demotu/BMC/blob/master/notebooks/CurveFitting.ipynb
+    #
+    n = len(y)
+    xMean = np.mean(x)
+    y_hat = np.asarray(lineFunc(x, popt[0], popt[1]))
+    resid = np.asarray(y) - y_hat
+    s_err = np.sqrt(np.sum(resid**2)/(n - 2))  # standard deviation of the error (residuals)
+    x2 = np.linspace(np.min(x), np.max(x)+1, 100) # plus one prediction outside the sample data
+    t = stats.t.ppf(0.975, n - 2)
+    pi = t * s_err * np.sqrt(1 + 1/n + (x2 - xMean)**2/np.sum((x-xMean)**2))
 
     # Return the results in our standard dictionary structure
-    results = {'n': float('nan'), 'xMean': float('nan'), 'yMean': float('nan'), 'B0': popt[0], 'B1':popt[1] }
+    results = {'n': n, 'xMean': xMean, 'yMean': float('nan'), 'B0': popt[0], 'B1':popt[1], '+1pi95':pi[-1], 's_err':s_err}
     return results
 
 def main():
