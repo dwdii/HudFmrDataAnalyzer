@@ -1,12 +1,24 @@
-HudFmrDataAnalyzer
-==================
+# HudFmrDataAnalyzer
+
 
 The Housing and Urban Development (HUD) Fair Market Rent Data Analyzer application is written in Python. It was written as
 part of my work in the CUNY Master of Science, Data Analytics program to exercise various programming techniques in
 Python and analyze the Fair Market Rent data sets offered by the Department of Housing and Urban Development.
 
-The app is a simple form using the TkInter user interface layer. Development of the app was performed on Windows 8.1,
-and no testing has been performed on other platforms, though no known Windows dependencies exist.
+The app is a simple form using the TkInter user interface layer. Development of the app was performed on Windows 8.1
+using PyCharm and Python 2.7. No testing has been performed on other platforms, though no known Windows dependencies exist.
+
+## Getting Started
+
+As a result of the app being written in Python, a scripting language, to get started using the app all that is
+required is to download this repository using the [Download Zip](https://github.com/dwdii/HudFmrDataAnalyzer/archive/master.zip)
+link on the right side of the [HudFmrDataAnalyzer repository GitHub root page](https://github.com/dwdii/HudFmrDataAnalyzer).
+
+After downloading and extracting the ZIP, simply run the `project_hudfmr.py` script, found in the
+[Project subfolder](https://github.com/dwdii/HudFmrDataAnalyzer/tree/master/Project), in your Python runtime.
+
+The initial dataset, years 2005-2015, is included in the
+[Data subfolder](https://github.com/dwdii/HudFmrDataAnalyzer/tree/master/Project/Data).
 
 The following screenshots provide a brief overview of the current functionality:
 
