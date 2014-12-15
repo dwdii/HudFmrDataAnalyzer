@@ -6,7 +6,7 @@ part of my work in the CUNY Master of Science, Data Analytics program to exercis
 Python and analyze the Fair Market Rent data sets offered by the Department of Housing and Urban Development.
 
 The app is a simple form using the TkInter user interface layer. Development of the app was performed on Windows 8.1
-using PyCharm and Python 2.7. No testing has been performed on other platforms, though no known Windows dependencies exist.
+using the PyCharm IDE and Python 2.7. No testing has been performed on other platforms, though no known Windows dependencies exist.
 
 ## Getting Started
 
@@ -18,7 +18,8 @@ After downloading and extracting the ZIP, simply run the `project_hudfmr.py` scr
 [Project subfolder](https://github.com/dwdii/HudFmrDataAnalyzer/tree/master/Project), in your Python runtime.
 
 The initial dataset, years 2005-2015, is included in the
-[Data subfolder](https://github.com/dwdii/HudFmrDataAnalyzer/tree/master/Project/Data).
+[Data subfolder](https://github.com/dwdii/HudFmrDataAnalyzer/tree/master/Project/Data) and will be loaded automatically
+when the app is started. 
 
 The following screenshots provide a brief overview of the current functionality:
 
