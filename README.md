@@ -1,5 +1,7 @@
 # HudFmrDataAnalyzer
 
+[![Codacy](https://img.shields.io/codacy/39298c168a044a5eb0a297a0169f71af.svg)](https://www.codacy.com/public/daniel_2/HudFmrDataAnalyzer/dashboard)
+[![License](https://img.shields.io/badge/license-MIT-red.svg)](http://opensource.org/licenses/MIT)
 
 The Housing and Urban Development (HUD) Fair Market Rent Data Analyzer application is written in Python. It was written as
 part of my work in the CUNY Master of Science, Data Analytics program to exercise various programming techniques in
